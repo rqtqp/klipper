@@ -3,6 +3,7 @@
 # Copyright (C) 2018-2021  Kevin O'Connor <kevin@koconnor.net>
 #
 # This file may be distributed under the terms of the GNU GPLv3 license.
+import logging
 import stepper, mathutil
 
 class WinchKinematics:
@@ -29,7 +30,8 @@ class WinchKinematics:
         self.set_position([0., 0., 0.], ())
 
         # added by me
-        self.limits = [(20.0, 1800.0)] * len(self.steppers)
+        self.logger = logging.getLogger(__name__)
+        self.limits = [(-500.0, 500.0)] * len(self.steppers)
         # // added by me
 
     def get_steppers(self):
@@ -50,9 +52,10 @@ class WinchKinematics:
     def _check_endstops(self, move):
         end_pos = move.end_pos
         for i in range(len(self.steppers)):
+            self.logger.debug(f"Checking endstop for axis {i}: end_pos={end_pos[i]}, limits={self.limits[i]}")
             if (move.axes_d[i] and (end_pos[i] < self.limits[i][0] or end_pos[i] > self.limits[i][1])):
                 if self.limits[i][0] > self.limits[i][1]:
-                    raise move.move_error("Mush home winch first")
+                    raise move.move_error("Must home winch first")
                 raise move.move_error()
     # // added by me
 
