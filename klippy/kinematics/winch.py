@@ -27,6 +27,11 @@ class WinchKinematics:
         self.axes_min = toolhead.Coord(*[min(a) for a in acoords], e=0.)
         self.axes_max = toolhead.Coord(*[max(a) for a in acoords], e=0.)
         self.set_position([0., 0., 0.], ())
+
+        # added by me
+        self.limits = [(20.0, 1800.0)] * len(self.steppers)
+        # // added by me
+
     def get_steppers(self):
         return list(self.steppers)
     def calc_position(self, stepper_positions):
@@ -40,7 +45,27 @@ class WinchKinematics:
         # XXX - homing not implemented
         homing_state.set_axes([0, 1, 2])
         homing_state.set_homed_position([0., 0., 0.])
+
+    # added by me
+    def _check_endstops(self, move):
+        end_pos = move.end_pos
+        for i in range(len(self.steppers)):
+            if (move.axes_d[i] and (end_pos[i] < self.limits[i][0] or end_pos[i] > self.limits[i][1])):
+                if self.limits[i][0] > self.limits[i][1]:
+                    raise move.move_error("Mush home winch first")
+                raise move.move_error()
+    # // added by me
+
     def check_move(self, move):
+        
+        # added by me
+        limits = self.limits
+        end_pos = move.end_pos
+        for i in range(len(self.anchors)):
+            if end_pos[i] < limits[i][0] or end_pos[i] > limits[i][1]:
+                self._check_endstops(move)
+        # //added by me
+
         # XXX - boundary checks and speed limits not implemented
         pass
     def get_status(self, eventtime):
