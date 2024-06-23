@@ -31,7 +31,7 @@ class WinchKinematics:
 
         # added by me
         self.logger = logging.getLogger(__name__)
-        self.limits = [(-500.0, 500.0)] * len(self.steppers)
+        self.limits = [(-600.0, 600.0)] * len(self.steppers)
         # // added by me
 
     def get_steppers(self):
@@ -52,7 +52,7 @@ class WinchKinematics:
     def _check_endstops(self, move):
         end_pos = move.end_pos
         for i in range(len(self.steppers)):
-            self.logger.debug(f"Checking endstop for axis {i}: end_pos={end_pos[i]}, limits={self.limits[i]}")
+            self.logger.warning(f"Checking endstop for axis {i}: end_pos={end_pos[i]}, limits={self.limits[i]}")
             if (move.axes_d[i] and (end_pos[i] < self.limits[i][0] or end_pos[i] > self.limits[i][1])):
                 if self.limits[i][0] > self.limits[i][1]:
                     raise move.move_error("Must home winch first")
@@ -67,10 +67,12 @@ class WinchKinematics:
         for i in range(len(self.anchors)):
             if end_pos[i] < limits[i][0] or end_pos[i] > limits[i][1]:
                 self._check_endstops(move)
+        
+        return
         # //added by me
 
         # XXX - boundary checks and speed limits not implemented
-        pass
+        #pass
     def get_status(self, eventtime):
         # XXX - homed_checks and rail limits not implemented
         return {
